@@ -116,3 +116,27 @@ func (e *Event) UpdateEvent() error {
 	return err
 
 }
+
+func (e *Event) DeleteEvent() error {
+
+	query := `
+		DELETE FROM events
+		WHERE id = ?
+	`
+
+	stmt, err := db.DB.Prepare(query)
+
+	if err != nil {
+		panic("Prepare Delete Event failed")
+	}
+
+	defer stmt.Close()
+	_, err = stmt.Exec(&e.ID)
+
+	if err != nil {
+		panic("Execute Delete Event failed")
+	}
+
+	return err
+
+}

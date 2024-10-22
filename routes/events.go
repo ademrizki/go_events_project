@@ -75,7 +75,7 @@ func createEvents(context *gin.Context) {
 
 	events.UserID = 1
 
-	err = events.Save()
+	err = events.SaveEvent()
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -89,5 +89,57 @@ func createEvents(context *gin.Context) {
 		StatusCode: http.StatusCreated,
 		Message:    http.StatusText(http.StatusCreated),
 		Event:      events,
+	})
+}
+
+func updateEventID(context *gin.Context) {
+	id, err := strconv.ParseInt(context.Param("id"), 10, 64)
+
+	if err != nil {
+		context.JSON(http.StatusBadRequest, models.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Parse ID failed.",
+		})
+		return
+	}
+
+	_, err = models.GetEvent(id)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Couldn't fetch event by ID",
+		})
+		return
+	}
+
+	var updatedEvent models.Event
+
+	err = context.ShouldBindJSON(&updatedEvent)
+
+	if err != nil {
+		context.JSON(http.StatusBadRequest, models.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Error Binding Event ",
+		})
+		return
+	}
+
+	updatedEvent.ID = id
+
+	err = updatedEvent.UpdateEvent()
+
+	if err != nil {
+		context.JSON(http.StatusBadRequest, models.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Error Updating Event ",
+		})
+		return
+	}
+
+	context.JSON(http.StatusCreated, models.EventsResponse{
+		StatusCode: http.StatusOK,
+		Message:    "Event Updated",
+		Event:      updatedEvent,
 	})
 }

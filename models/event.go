@@ -15,7 +15,7 @@ type Event struct {
 	UserID      int64     `json:"user_id"`
 }
 
-func (e *Event) Save() error {
+func (e *Event) SaveEvent() error {
 
 	query := `
 		INSERT INTO events(name, description, location, dateTime, user_id) 
@@ -88,4 +88,31 @@ func GetEvent(id int64) (*Event, error) {
 	}
 
 	return &event, nil
+}
+
+func (e *Event) UpdateEvent() error {
+
+	query := `
+		UPDATE events
+		SET name = ?, description = ?, location = ?, dateTime = ?
+		WHERE id = ?
+	`
+
+	stmt, err := db.DB.Prepare(query)
+
+	if err != nil {
+		panic("Prepare Update Event failed")
+	}
+
+	defer stmt.Close()
+	_, err = stmt.Exec(
+		&e.Name, &e.Description, &e.Location, &e.DateTime, &e.ID,
+	)
+
+	if err != nil {
+		panic("Execute Update Event failed")
+	}
+
+	return err
+
 }

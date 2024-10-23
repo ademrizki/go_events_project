@@ -25,7 +25,7 @@ func signUp(context *gin.Context) {
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			StatusCode: http.StatusBadRequest,
+			StatusCode: http.StatusInternalServerError,
 			Message:    "Couldn't add user. Try again later.",
 		})
 		return

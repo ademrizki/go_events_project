@@ -8,5 +8,11 @@ type ErrorResponse struct {
 type EventsResponse struct {
 	StatusCode int64  `json:"status_code"`
 	Message    string `json:"message"`
-	Event      any    `json:"event,omitempty"`
+	Event      any    `json:"events,omitempty"`
+}
+
+type UsersResponse struct {
+	StatusCode int64  `json:"status_code"`
+	Message    string `json:"message"`
+	User       any    `json:"users,omitempty"`
 }

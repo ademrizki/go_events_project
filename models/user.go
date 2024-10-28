@@ -33,3 +33,30 @@ func (user *User) SaveUser() error {
 
 	return err
 }
+
+func GetUsers() ([]User, error) {
+	query := "SELECT id, email FROM users"
+
+	rows, err := db.DB.Query(query)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []User
+
+	for rows.Next() {
+		var user User
+
+		err := rows.Scan(&user.ID, &user.Email)
+
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}

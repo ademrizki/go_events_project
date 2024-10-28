@@ -36,3 +36,24 @@ func signUp(context *gin.Context) {
 		Message:    http.StatusText(http.StatusCreated),
 	})
 }
+
+// This function purpose for show all users that already registered
+func getUsers(context *gin.Context) {
+	users, err := models.GetUsers()
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Couldn't fetch users. Try again later.",
+		})
+		return
+	}
+
+	response := models.UsersResponse{
+		StatusCode: http.StatusOK,
+		Message:    http.StatusText(http.StatusOK),
+		User:       users,
+	}
+
+	context.JSON(http.StatusOK, response)
+}

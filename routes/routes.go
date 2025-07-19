@@ -1,13 +1,52 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"example.com/rest-api/models"
+	"example.com/rest-api/utils"
+	"github.com/gin-gonic/gin"
+)
 
 func RegisterRoutes(server *gin.Engine) {
-	server.GET("/events", getEvents)
-	server.GET("/events/:id", getEventByID)
-	server.POST("/events", createEvents)
-	server.PUT("/events/:id", updateEventID)
-	server.DELETE("/events/:id", deleteEvent)
+
+	server.GET("/events", ValidationMiddleware(), getEvents)
+	server.GET("/events/:id", ValidationMiddleware(), getEventByID)
+	server.POST("/events", ValidationMiddleware(), createEvents)
+	server.PUT("/events/:id", ValidationMiddleware(), updateEventID)
+	server.DELETE("/events/:id", ValidationMiddleware(), deleteEvent)
 	server.POST("/signup", signUp)
-	server.GET("/users", getUsers)
+	server.POST("/login", login)
+	server.GET("/users", ValidationMiddleware(), getUsers)
+}
+
+func ValidationMiddleware() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		const BEARER_SCHEMA = "Bearer "
+		token := context.GetHeader("Authorization")
+
+		if token == "" {
+			context.JSON(http.StatusUnauthorized, models.ErrorResponse{
+				StatusCode: http.StatusUnauthorized,
+				Message:    "Token doesn't exist",
+			})
+			context.Abort()
+			return
+		}
+
+		tokenString := token[len(BEARER_SCHEMA):]
+
+		err := utils.ValidateToken(tokenString)
+
+		if err != nil {
+			context.JSON(http.StatusUnauthorized, models.ErrorResponse{
+				StatusCode: http.StatusUnauthorized,
+				Message:    err.Error(),
+			})
+			context.Abort()
+			return
+		}
+		context.Next()
+	}
+
 }

@@ -1,11 +1,16 @@
 package models
 
-import "example.com/rest-api/db"
+import (
+	"errors"
+
+	"example.com/rest-api/db"
+	"example.com/rest-api/utils"
+)
 
 type User struct {
 	ID       int64  `json:"id"`
 	Email    string `binding:"required" json:"email"`
-	Password string `binding:"required" json:"password"`
+	Password string `binding:"required" json:"password,omitempty"`
 }
 
 func (user *User) SaveUser() error {
@@ -21,7 +26,14 @@ func (user *User) SaveUser() error {
 	}
 
 	defer stmt.Close()
-	result, err := stmt.Exec(&user.Email, &user.Password)
+
+	hashedPassword, err := utils.HashPassword(user.Password)
+
+	if err != nil {
+		panic("Hash Password failed")
+	}
+
+	result, err := stmt.Exec(&user.Email, hashedPassword)
 
 	if err != nil {
 		panic("Execute Save User failed")
@@ -59,4 +71,25 @@ func GetUsers() ([]User, error) {
 	}
 
 	return users, nil
+}
+
+func (u User) ValidateCredentials() error {
+	query := "SELECT id, password FROM users WHERE email = ?"
+
+	row := db.DB.QueryRow(query, u.Email)
+
+	var retreivePassword string
+
+	err := row.Scan(&u.ID, &retreivePassword)
+
+	if err != nil {
+		return errors.New("invalid Credentials")
+	}
+
+	isPasswordValid := utils.VerifyPassword(retreivePassword, u.Password)
+
+	if !isPasswordValid {
+		return errors.New("invalid Credentials")
+	}
+	return nil
 }

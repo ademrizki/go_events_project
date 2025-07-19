@@ -5,8 +5,50 @@ import (
 	"net/http"
 
 	"example.com/rest-api/models"
+	"example.com/rest-api/utils"
 	"github.com/gin-gonic/gin"
 )
+
+func login(context *gin.Context) {
+	var user models.User
+
+	err := context.ShouldBindJSON(&user)
+
+	if err != nil {
+		context.JSON(http.StatusBadRequest, models.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    err.Error(),
+		})
+		return
+	}
+
+	err = user.ValidateCredentials()
+
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, models.ErrorResponse{
+			StatusCode: http.StatusUnauthorized,
+			Message:    "Invalid email or password",
+		})
+		return
+	}
+
+	token, err := utils.GenerateToken(user.Email, user.ID)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Authentication failed, please try again later.",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, models.LoginResponse{
+		StatusCode: http.StatusOK,
+		Message:    "Login successful",
+		Token:      token,
+	})
+
+}
 
 func signUp(context *gin.Context) {
 	var user models.User
@@ -52,7 +94,7 @@ func getUsers(context *gin.Context) {
 	response := models.UsersResponse{
 		StatusCode: http.StatusOK,
 		Message:    http.StatusText(http.StatusOK),
-		User:       users,
+		Data:       users,
 	}
 
 	context.JSON(http.StatusOK, response)

@@ -14,5 +14,11 @@ type EventsResponse struct {
 type UsersResponse struct {
 	StatusCode int64  `json:"status_code"`
 	Message    string `json:"message"`
-	User       any    `json:"users,omitempty"`
+	Data       any    `json:"data,omitempty"`
+}
+
+type LoginResponse struct {
+	StatusCode int64  `json:"status_code"`
+	Message    string `json:"message"`
+	Token      any    `json:"token,omitempty"`
 }

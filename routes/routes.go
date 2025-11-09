@@ -36,7 +36,7 @@ func ValidationMiddleware() gin.HandlerFunc {
 
 		tokenString := token[len(BEARER_SCHEMA):]
 
-		err := utils.ValidateToken(tokenString)
+		userID, err := utils.ValidateToken(tokenString)
 
 		if err != nil {
 			context.JSON(http.StatusUnauthorized, models.ErrorResponse{
@@ -46,6 +46,17 @@ func ValidationMiddleware() gin.HandlerFunc {
 			context.Abort()
 			return
 		}
+
+		if userID == 0 {
+			context.JSON(http.StatusUnauthorized, models.ErrorResponse{
+				StatusCode: http.StatusUnauthorized,
+				Message:    "User doesn't exist",
+			})
+			context.Abort()
+			return
+		}
+
+		context.Set("user_id", userID)
 		context.Next()
 	}
 
